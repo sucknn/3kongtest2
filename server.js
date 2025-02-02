@@ -137,3 +137,33 @@ function compareHands(hand1, hand2) {
     return result;
 }
 
+function evaluateHand(cards) {
+    const rankOrder = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    let rankCounts = {}, suits = new Set(), values = [];
+
+    // นับจำนวนไพ่แต่ละแต้มและสี
+    cards.forEach(card => {
+        let rank = card.slice(0, -1); // ดึงเฉพาะตัวเลข/ตัวอักษรของไพ่
+        let suit = card.slice(-1); // ดึงสีของไพ่
+        values.push(rankOrder.indexOf(rank));
+        suits.add(suit);
+        rankCounts[rank] = (rankCounts[rank] || 0) + 1;
+    });
+
+    values.sort((a, b) => a - b);
+    let isFlush = suits.size === 1;
+    let isStraight = values.every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
+    let counts = Object.values(rankCounts);
+
+    // ✅ ค่าคะแนนของไพ่ (ตามความแข็งแกร่ง)
+    if (isFlush && isStraight) return 8; // สเตรทฟลัช
+    if (counts.includes(3) && counts.includes(2)) return 7; // ฟูลเฮาส์
+    if (isFlush) return 6; // ฟลัช
+    if (isStraight) return 5; // สเตรท
+    if (counts.includes(3)) return 4; // ตอง
+    if (counts.filter(c => c === 2).length === 2) return 3; // สองคู่
+    if (counts.includes(2)) return 2; // หนึ่งคู่
+
+    return Math.max(...values) / 100; // กำหนดแต้มไพ่สูงสุด
+}
+
