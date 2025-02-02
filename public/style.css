@@ -1,0 +1,102 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    margin: 20px 0;
+}
+
+#loginSection {
+    margin: 20px auto;
+}
+
+#playerInfo {
+    font-weight: bold;
+}
+
+#gameBoard {
+    margin-top: 20px;
+}
+
+.hand {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 5px;
+    overflow-x: auto;
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.pile {
+    width: auto;
+    min-height: 100px;
+    border: 2px dashed gray;
+    background-color: #fff;
+    margin: 10px auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px;
+    border-radius: 8px;
+    gap: 5px;
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+.card {
+    width: 60px;
+    height: 90px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid black;
+    text-align: center;
+    line-height: 90px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: grab;
+    transition: transform 0.3s ease-in-out;
+    user-select: none;
+}
+
+.card.red { color: red; }
+.card.black { color: black; }
+
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.control-btn {
+    margin: 10px;
+}
+
+#scoreboard {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: white;
+    display: inline-block;
+    min-width: 200px;
+}
+
+.player-done {
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+}
