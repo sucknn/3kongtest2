@@ -13,12 +13,8 @@ const io = new Server(server, {
 
 app.use(express.static("public"));
 
-// ใช้ PORT จาก Environment Variable ของ Render หรือค่าเริ่มต้น 3000
 const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 let players = [];
 let readyPlayers = new Set();
@@ -58,6 +54,7 @@ io.on("connection", (socket) => {
         if (Object.keys(submittedHands).length === 4) {
             let scores = calculateScore(submittedHands);
             io.emit("showScores", scores);
+            io.emit("showFinalHands", submittedHands); // ส่งไพ่ของผู้เล่นทั้งหมดไปยัง client
             submittedHands = {};
         }
     });
@@ -89,8 +86,8 @@ function startGame() {
 
 function createDeck() {
     const suits = ["♠", "♥", "♦", "♣"];
-    const ranks = "23456789TJQKA";
-    return suits.flatMap(suit => ranks.split("").map(rank => rank + suit));
+    const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    return suits.flatMap(suit => ranks.map(rank => rank + suit));
 }
 
 function shuffleDeck(deck) {
@@ -140,29 +137,3 @@ function compareHands(hand1, hand2) {
     return result;
 }
 
-function evaluateHand(cards) {
-    const rankOrder = "23456789TJQKA";
-    let rankCounts = {}, suits = new Set(), values = [];
-
-    cards.forEach(card => {
-        let rank = card[0], suit = card.slice(-1);
-        values.push(rankOrder.indexOf(rank));
-        suits.add(suit);
-        rankCounts[rank] = (rankCounts[rank] || 0) + 1;
-    });
-
-    values.sort((a, b) => a - b);
-    let isFlush = suits.size === 1;
-    let isStraight = values.every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
-    let counts = Object.values(rankCounts);
-    
-    if (isFlush && isStraight) return 8;
-    if (counts.includes(3) && counts.includes(2)) return 7;
-    if (isFlush) return 6;
-    if (isStraight) return 5;
-    if (counts.includes(3)) return 4;
-    if (counts.filter(c => c === 2).length === 2) return 3;
-    if (counts.includes(2)) return 2;
-
-    return Math.max(...values) / 100;
-}
