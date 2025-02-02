@@ -70,6 +70,24 @@ function handleDragStart(e) {
     e.dataTransfer.setData('text/plain', e.target.dataset.card);
 }
 
+// ✅ รองรับการลากไพ่ไปวางในกอง
+document.querySelectorAll(".pile").forEach(pile => {
+    pile.addEventListener("dragover", event => {
+        event.preventDefault(); // อนุญาตให้วางไพ่ที่กองได้
+    });
+
+    pile.addEventListener("drop", event => {
+        event.preventDefault();
+        const cardValue = event.dataTransfer.getData("text/plain");
+        if (!cardValue) return; // ถ้าไม่มีไพ่ ให้หยุดทำงาน
+
+        const draggedCard = document.querySelector(`[data-card='${cardValue}']`);
+        if (!draggedCard) return; // ถ้าไม่มีไพ่ที่ถูกลากมา ให้หยุดทำงาน
+
+        event.target.appendChild(draggedCard); // ย้ายไพ่ไปยังกองที่ต้องการ
+    });
+});
+
 document.getElementById("submitHand").addEventListener("click", () => {
     const hand = {
         topPile: getCardsFromPile("topPile"),
@@ -130,3 +148,4 @@ socket.on("gameReset", () => {
     document.getElementById("submitHand").disabled = false;
     document.getElementById("restartGame").style.display = "none";
 });
+
