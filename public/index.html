@@ -1,43 +1,18 @@
 <!DOCTYPE html>
-<html lang="th" dir="ltr">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="เกมไพ่ 3 กองออนไลน์ เล่นกับเพื่อนผ่านเครือข่าย">
-    <title>ไพ่ 3 กอง (Chinese Poker)</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header>
-        <h1>เกมไพ่ 3 กอง</h1>
-        <div id="loginSection">
-            <input type="text" id="playerName" placeholder="กรอกชื่อของคุณ">
-            <button id="joinGame">เข้าร่วมเกม</button>
-        </div>
-        <p id="playerInfo" role="status" style="display:none;">รอการเชื่อมต่อ...</p>
-    </header>
-
-    <main id="gameBoard" style="display:none;">
-        <button id="startGame" class="control-btn" style="display:none;">เริ่มเกม</button>
-        <p id="readyStatus"></p>
-
-        <section id="player-hand" class="hand" role="region" aria-label="ไพ่ของผู้เล่น"></section>
-
-        <section id="player-piles" role="region" aria-label="พื้นที่วางไพ่">
-            <div class="pile" id="topPile" data-pile="top">กองบน (3 ใบ)</div>
-            <div class="pile" id="middlePile" data-pile="middle">กองกลาง (5 ใบ)</div>
-            <div class="pile" id="bottomPile" data-pile="bottom">กองล่าง (5 ใบ)</div>
-        </section>
-
-        <div id="controls">
-            <button id="submitHand" class="control-btn" style="display:none;">ส่งไพ่</button>
-            <button id="restartGame" class="control-btn" style="display:none;">เริ่มเกมใหม่</button>
-        </div>
-    </main>
-
-    <aside id="scoreboard" aria-live="polite"></aside>
-
+    <title>ไพ่ 3 กอง</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="game.js"></script>
+</head>
+<body>
+    <h1>เกมไพ่ 3 กอง</h1>
+    <input type="text" id="playerName" placeholder="ชื่อของคุณ">
+    <button id="joinGame">เข้าร่วมเกม</button>
+    <p id="playerInfo"></p>
+    <button id="startGame">เริ่มเกม</button>
+    <div id="finalHands" style="display: none;"></div>
 </body>
 </html>
+
