@@ -85,7 +85,10 @@ io.on("connection", (socket) => {
 });
 
 function startGame() {
-    if (players.length !== 4) return;
+    if (players.length !== 4) {
+        console.log("❌ ผู้เล่นยังไม่ครบ 4 คน, รอให้ครบก่อนเริ่มเกม...");
+        return;
+    }
 
     const deck = createDeck();
     shuffleDeck(deck);
@@ -94,6 +97,8 @@ function startGame() {
         const playerHand = deck.splice(0, 13);
         io.to(player.id).emit("dealCards", playerHand);
     });
+
+    console.log("✅ แจกไพ่ให้ผู้เล่นทุกคนแล้ว!");
 }
 
 function createDeck() {
