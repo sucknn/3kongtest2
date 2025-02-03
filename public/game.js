@@ -17,6 +17,31 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("gameBoard").style.display = "block";
     });
 
+    // ✅ กดปุ่ม "เริ่มเกม"
+    document.getElementById("startGame").addEventListener("click", () => {
+        socket.emit("playerReady");
+        document.getElementById("startGame").disabled = true;
+    });
+
+    socket.on("playerReady", data => {
+        readyPlayers.add(data.playerName);
+        updateReadyStatus();
+    });
+
+    function updateReadyStatus() {
+        document.getElementById("readyStatus").innerHTML = 
+            `🟢 ผู้เล่นที่กดเริ่มเกม: ${Array.from(readyPlayers).join(", ")}`;
+
+        if (readyPlayers.size === 4) {
+            document.getElementById("startGame").style.display = "none";
+        }
+    }
+
+    socket.on("startGame", () => {
+        document.getElementById("startGame").style.display = "none";
+        document.getElementById("readyStatus").innerHTML = "🎲 เกมเริ่มแล้ว!";
+    });
+
     // ✅ แสดงไพ่ที่แจกให้ผู้เล่น
     socket.on("dealCards", cards => {
         const handContainer = document.getElementById("player-hand");
@@ -29,12 +54,15 @@ document.addEventListener("DOMContentLoaded", () => {
             cardElement.dataset.card = card;
             cardElement.textContent = card;
             cardElement.addEventListener('dragstart', handleDragStart);
-            cardElement.addEventListener("touchstart", handleTouchStart);
-            cardElement.addEventListener("touchmove", handleTouchMove);
-            cardElement.addEventListener("touchend", handleTouchEnd);
             handContainer.appendChild(cardElement);
         });
+
+        console.log("✅ ไพ่ถูกแจกแล้ว!");
     });
+
+    function handleDragStart(e) {
+        e.dataTransfer.setData('text/plain', e.target.dataset.card);
+    }
 
     // ✅ รองรับการลากไพ่เข้า-ออกจากกอง
     document.querySelectorAll(".pile").forEach(pile => {
@@ -52,27 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 draggedCard.addEventListener("dragstart", handleDragStart);
             }
         });
-    });
-
-    // ✅ กดปุ่ม "เริ่มเกม"
-    document.getElementById("startGame").addEventListener("click", () => {
-        socket.emit("playerReady");
-        document.getElementById("startGame").disabled = true;
-    });
-
-    socket.on("playerReady", data => {
-        readyPlayers.add(data.playerName);
-        updateReadyStatus();
-    });
-
-    function updateReadyStatus() {
-        document.getElementById("readyStatus").innerHTML = 
-            `🟢 ผู้เล่นที่กดเริ่มเกม: ${Array.from(readyPlayers).join(", ")}`;
-    }
-
-    socket.on("startGame", () => {
-        document.getElementById("startGame").style.display = "none";
-        document.getElementById("readyStatus").innerHTML = "";
     });
 
     // ✅ กดปุ่ม "ส่งไพ่"
@@ -114,5 +121,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // ✅ กดปุ่ม "เริ่มเกมใหม่"
     document.getElementById("restartGame").addEventListener("click", () => {
         socket.emit("restartGame");
+    });
+
+    // ✅ รีเซ็ตเกม
+    socket.on("gameReset", () => {
+        document.getElementById("player-hand").innerHTML = "";
+        document.getElementById("scoreboard").innerHTML = "";
+        document.getElementById("readyStatus").innerHTML = "";
+        document.getElementById("submitHand").disabled = false;
+        document.getElementById("restartGame").style.display = "none";
+
+        document.getElementById("topPile").innerHTML = "กองบน (3 ใบ)";
+        document.getElementById("middlePile").innerHTML = "กองกลาง (5 ใบ)";
+        document.getElementById("bottomPile").innerHTML = "กองล่าง (5 ใบ)";
     });
 });
