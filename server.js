@@ -1,4 +1,4 @@
-const express = require("express");
+cconst express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -49,32 +49,44 @@ io.on("connection", (socket) => {
     });
 
     socket.on("submitHand", data => {
-        submittedHands[data.playerId] = data.hand;
+        const player = players.find(p => p.id === data.playerId);
+        if (!player) return;
+
+        submittedHands[data.playerId] = {
+            playerName: player.playerName,
+            hand: data.hand
+        };
 
         if (Object.keys(submittedHands).length === 4) {
             let scores = calculateScore(submittedHands);
             io.emit("showScores", scores);
-            io.emit("showFinalHands", submittedHands); // ส่งไพ่ของผู้เล่นทั้งหมดไปยัง client
+            io.emit("showFinalHands", submittedHands);
             submittedHands = {};
         }
     });
 
     socket.on("restartGame", () => {
-        players = [];
         readyPlayers.clear();
         gameStarted = false;
         submittedHands = {};
+
         io.emit("gameReset");
+        startGame(); // แจกไพ่ใหม่
     });
 
     socket.on("disconnect", () => {
         players = players.filter(p => p.id !== socket.id);
         readyPlayers.delete(socket.id);
+        delete submittedHands[socket.id];
+        
         io.emit("updatePlayers", { players });
+        io.emit("playerLeft", "❌ มีผู้เล่นออกจากเกม!");
     });
 });
 
 function startGame() {
+    if (players.length !== 4) return;
+
     const deck = createDeck();
     shuffleDeck(deck);
 
@@ -124,6 +136,8 @@ function compareHands(hand1, hand2) {
     let totalWin1 = 0, totalWin2 = 0;
 
     handTypes.forEach(type => {
+        if (!hand1[type] || !hand2[type]) return;
+
         let score1 = evaluateHand(hand1[type]);
         let score2 = evaluateHand(hand2[type]);
 
@@ -141,10 +155,9 @@ function evaluateHand(cards) {
     const rankOrder = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     let rankCounts = {}, suits = new Set(), values = [];
 
-    // นับจำนวนไพ่แต่ละแต้มและสี
     cards.forEach(card => {
-        let rank = card.slice(0, -1); // ดึงเฉพาะตัวเลข/ตัวอักษรของไพ่
-        let suit = card.slice(-1); // ดึงสีของไพ่
+        let rank = card.slice(0, -1);
+        let suit = card.slice(-1);
         values.push(rankOrder.indexOf(rank));
         suits.add(suit);
         rankCounts[rank] = (rankCounts[rank] || 0) + 1;
@@ -155,15 +168,13 @@ function evaluateHand(cards) {
     let isStraight = values.every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
     let counts = Object.values(rankCounts);
 
-    // ✅ ค่าคะแนนของไพ่ (ตามความแข็งแกร่ง)
-    if (isFlush && isStraight) return 8; // สเตรทฟลัช
-    if (counts.includes(3) && counts.includes(2)) return 7; // ฟูลเฮาส์
-    if (isFlush) return 6; // ฟลัช
-    if (isStraight) return 5; // สเตรท
-    if (counts.includes(3)) return 4; // ตอง
-    if (counts.filter(c => c === 2).length === 2) return 3; // สองคู่
-    if (counts.includes(2)) return 2; // หนึ่งคู่
+    if (isFlush && isStraight) return 8;
+    if (counts.includes(3) && counts.includes(2)) return 7;
+    if (isFlush) return 6;
+    if (isStraight) return 5;
+    if (counts.includes(3)) return 4;
+    if (counts.filter(c => c === 2).length === 2) return 3;
+    if (counts.includes(2)) return 2;
 
-    return Math.max(...values) / 100; // กำหนดแต้มไพ่สูงสุด
+    return Math.max(...values) / 100;
 }
-
