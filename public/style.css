@@ -1,54 +1,58 @@
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
     background-color: #f4f4f4;
+    text-align: center;
     margin: 0;
     padding: 0;
 }
 
 h1 {
-    margin: 20px 0;
+    color: #333;
 }
 
 #loginSection {
-    margin: 20px auto;
-}
-
-#playerInfo {
-    font-weight: bold;
-}
-
-#gameBoard {
     margin-top: 20px;
 }
 
+input, button {
+    font-size: 16px;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* ✅ ส่วนแสดงไพ่ของผู้เล่น */
 .hand {
     display: flex;
     justify-content: center;
     flex-wrap: nowrap;
     gap: 5px;
     overflow-x: auto;
-    margin: 20px 0;
     padding: 10px;
+    border: 2px solid #ddd;
+    background-color: white;
+    border-radius: 10px;
+    min-height: 120px;
 }
 
-.pile {
-    width: auto;
-    min-height: 100px;
-    border: 2px dashed gray;
-    background-color: #fff;
-    margin: 10px auto;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 10px;
-    border-radius: 8px;
-    gap: 5px;
-    white-space: nowrap;
-    overflow-x: auto;
-}
-
+/* ✅ ไพ่ */
 .card {
     width: 60px;
     height: 90px;
@@ -60,43 +64,108 @@ h1 {
     font-size: 16px;
     font-weight: bold;
     cursor: grab;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
     user-select: none;
+    position: relative;
+}
+
+.card:active {
+    transform: scale(1.1);
+    z-index: 1000;
 }
 
 .card.red { color: red; }
 .card.black { color: black; }
 
-button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
+/* ✅ ส่วนของกองไพ่ */
+.pile {
+    width: auto;
+    min-height: 150px;
+    border: 2px dashed gray;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    white-space: nowrap;
 }
 
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+/* ✅ เมื่อไพ่ถูกลากมาวาง */
+.pile:hover {
+    background-color: #f0f0f0;
+}
+
+/* ✅ ปุ่มควบคุม */
+#controls {
+    margin-top: 20px;
 }
 
 .control-btn {
-    margin: 10px;
+    font-size: 16px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    margin: 5px;
+    cursor: pointer;
 }
 
+#submitHand {
+    background-color: #28a745;
+    color: white;
+}
+
+#submitHand:hover {
+    background-color: #218838;
+}
+
+#restartGame {
+    background-color: #dc3545;
+    color: white;
+    display: none;
+}
+
+#restartGame.show {
+    display: block;
+}
+
+/* ✅ ส่วนแสดงคะแนน */
 #scoreboard {
     margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    background-color: white;
-    display: inline-block;
-    min-width: 200px;
+    font-size: 18px;
+    color: #333;
 }
 
-.player-done {
-    color: green;
-    font-weight: bold;
-    margin-top: 10px;
+/* ✅ แสดงไพ่ของผู้เล่นทั้งหมดหลังจบเกม */
+#finalHands {
+    margin-top: 20px;
+    display: none;
+    padding: 10px;
+    border: 2px solid #ddd;
+    background-color: white;
+    border-radius: 10px;
+}
+
+/* ✅ ปรับให้รองรับมือถือ */
+@media screen and (max-width: 600px) {
+    .hand, .pile {
+        overflow-x: auto;
+        justify-content: flex-start;
+        white-space: nowrap;
+        padding: 5px;
+    }
+
+    .card {
+        width: 50px;
+        height: 75px;
+        line-height: 75px;
+        font-size: 14px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px;
+    }
 }
