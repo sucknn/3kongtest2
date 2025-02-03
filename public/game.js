@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const socket = io();
     let readyPlayers = new Set();
 
-    // ✅ กดปุ่ม "เข้าร่วมเกม"
     document.getElementById("joinGame").addEventListener("click", () => {
         const playerName = document.getElementById("playerName").value.trim();
         if (!playerName) return alert("กรุณากรอกชื่อของคุณ!");
@@ -17,16 +16,19 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("gameBoard").style.display = "block";
     });
 
-    // ✅ อัปเดตข้อมูลผู้เล่น & แสดงปุ่มเริ่มเกม
     socket.on("updatePlayers", data => {
         const playerCount = data.players.length;
-        document.getElementById("playerInfo").textContent = `ผู้เล่นในเกม: ${playerCount}/4`;
+        const playerInfo = document.getElementById("playerInfo");
+        if (playerInfo) {
+            playerInfo.textContent = `ผู้เล่นในเกม: ${playerCount}/4`;
+        }
 
-        // ถ้ามีครบ 4 คนให้แสดงปุ่ม "เริ่มเกม"
-        document.getElementById("startGame").style.display = (playerCount === 4) ? "inline-block" : "none";
+        const startGameButton = document.getElementById("startGame");
+        if (startGameButton) {
+            startGameButton.style.display = (playerCount === 4) ? "inline-block" : "none";
+        }
     });
 
-    // ✅ กดปุ่ม "เริ่มเกม"
     document.getElementById("startGame").addEventListener("click", () => {
         socket.emit("playerReady");
         document.getElementById("startGame").disabled = true;
@@ -38,68 +40,54 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function updateReadyStatus() {
-        document.getElementById("readyStatus").innerHTML = 
-            `🟢 ผู้เล่นที่กดเริ่มเกม: ${Array.from(readyPlayers).join(", ")}`;
-
-        if (readyPlayers.size === 4) {
-            document.getElementById("startGame").style.display = "none";
+        const readyStatus = document.getElementById("readyStatus");
+        if (readyStatus) {
+            readyStatus.innerHTML = `🟢 ผู้เล่นที่กดเริ่มเกม: ${Array.from(readyPlayers).join(", ")}`;
         }
     }
 
     socket.on("startGame", () => {
-        document.getElementById("startGame").style.display = "none";
-        document.getElementById("readyStatus").innerHTML = "🎲 เกมเริ่มแล้ว!";
+        const startGameButton = document.getElementById("startGame");
+        if (startGameButton) {
+            startGameButton.style.display = "none";
+        }
+
+        const readyStatus = document.getElementById("readyStatus");
+        if (readyStatus) {
+            readyStatus.innerHTML = "🎲 เกมเริ่มแล้ว!";
+        }
     });
 
-    // ✅ แสดงไพ่ที่แจกให้ผู้เล่น
     socket.on("dealCards", cards => {
         const handContainer = document.getElementById("player-hand");
-        handContainer.innerHTML = '';
+        if (handContainer) {
+            handContainer.innerHTML = '';
 
-        cards.forEach(card => {
-            const cardElement = document.createElement('div');
-            cardElement.className = "card";
-            cardElement.draggable = true;
-            cardElement.dataset.card = card;
-            cardElement.textContent = card;
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = "card";
+                cardElement.draggable = true;
+                cardElement.dataset.card = card;
+                cardElement.textContent = card;
 
-            // ✅ ทำให้ไพ่สีแดงแสดงเป็นสีแดง ไพ่สีดำแสดงเป็นสีดำ
-            if (card.includes("♦") || card.includes("♥")) {
-                cardElement.classList.add("red-card");
-            } else {
-                cardElement.classList.add("black-card");
-            }
+                if (card.includes("♦") || card.includes("♥")) {
+                    cardElement.classList.add("red-card");
+                } else {
+                    cardElement.classList.add("black-card");
+                }
 
-            cardElement.addEventListener('dragstart', handleDragStart);
-            handContainer.appendChild(cardElement);
-        });
+                cardElement.addEventListener('dragstart', handleDragStart);
+                handContainer.appendChild(cardElement);
+            });
 
-        console.log("✅ ไพ่ถูกแจกแล้ว!");
+            console.log("✅ ไพ่ถูกแจกแล้ว!");
+        }
     });
 
     function handleDragStart(e) {
         e.dataTransfer.setData('text/plain', e.target.dataset.card);
     }
 
-    // ✅ รองรับการลากไพ่เข้า-ออกจากกอง
-    document.querySelectorAll(".pile").forEach(pile => {
-        pile.addEventListener("dragover", event => event.preventDefault());
-
-        pile.addEventListener("drop", event => {
-            event.preventDefault();
-            const cardValue = event.dataTransfer.getData("text/plain");
-            if (!cardValue) return;
-
-            const draggedCard = document.querySelector(`[data-card='${cardValue}']`);
-            if (draggedCard) {
-                event.target.appendChild(draggedCard);
-                draggedCard.draggable = true;
-                draggedCard.addEventListener("dragstart", handleDragStart);
-            }
-        });
-    });
-
-    // ✅ กดปุ่ม "ส่งไพ่"
     document.getElementById("submitHand").addEventListener("click", () => {
         const hand = {
             topPile: getCardsFromPile("topPile"),
@@ -114,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         socket.emit("submitHand", { playerId: socket.id, hand });
 
-        // ✅ ปิดการใช้งานปุ่มส่งไพ่หลังจากส่งแล้ว
         document.getElementById("submitHand").disabled = true;
         document.getElementById("submitHand").style.backgroundColor = "#ccc";
     });
@@ -124,48 +111,39 @@ document.addEventListener("DOMContentLoaded", () => {
                     .map(card => card.dataset.card);
     }
 
-    // ✅ แสดงผลคะแนน
     socket.on("showScores", scores => {
-        let scoreboard = document.getElementById("scoreboard");
-        scoreboard.innerHTML = "<h3>คะแนนผู้เล่น</h3>";
+        const scoreboard = document.getElementById("scoreboard");
+        if (scoreboard) {
+            scoreboard.innerHTML = "<h3>คะแนนผู้เล่น</h3>";
 
-        Object.entries(scores).forEach(([player, score]) => {
-            let scoreElement = document.createElement("p");
-            scoreElement.textContent = `${player}: ${score} คะแนน`;
-            scoreboard.appendChild(scoreElement);
-        });
+            Object.entries(scores).forEach(([player, score]) => {
+                let scoreElement = document.createElement("p");
+                scoreElement.textContent = `${player}: ${score} คะแนน`;
+                scoreboard.appendChild(scoreElement);
+            });
 
-        document.getElementById("restartGame").style.display = "block";
+            const restartGameButton = document.getElementById("restartGame");
+            if (restartGameButton) {
+                restartGameButton.style.display = "block";
+            }
+        }
     });
 
-    // ✅ แสดงไพ่ของผู้เล่นทั้งหมดหลังจบเกม
-    socket.on("showFinalHands", finalHands => {
-        let finalHandsContainer = document.getElementById("finalHands");
-        let handsContainer = document.getElementById("handsContainer");
-        handsContainer.innerHTML = "";
-
-        Object.values(finalHands).forEach(playerData => {
-            let playerDiv = document.createElement("div");
-            playerDiv.innerHTML = `<strong>${playerData.playerName}:</strong> ${JSON.stringify(playerData.hand)}`;
-            handsContainer.appendChild(playerDiv);
-        });
-
-        finalHandsContainer.style.display = "block";
-    });
-
-    // ✅ กดปุ่ม "เริ่มเกมใหม่"
-    document.getElementById("restartGame").addEventListener("click", () => {
-        socket.emit("restartGame");
-    });
-
-    // ✅ รีเซ็ตเกม
     socket.on("gameReset", () => {
         document.getElementById("player-hand").innerHTML = "";
         document.getElementById("scoreboard").innerHTML = "";
         document.getElementById("readyStatus").innerHTML = "";
-        document.getElementById("submitHand").disabled = false;
-        document.getElementById("submitHand").style.backgroundColor = "#28a745";
-        document.getElementById("restartGame").style.display = "none";
+        
+        const submitHandButton = document.getElementById("submitHand");
+        if (submitHandButton) {
+            submitHandButton.disabled = false;
+            submitHandButton.style.backgroundColor = "#28a745";
+        }
+
+        const restartGameButton = document.getElementById("restartGame");
+        if (restartGameButton) {
+            restartGameButton.style.display = "none";
+        }
 
         document.getElementById("topPile").innerHTML = "กองบน (3 ใบ)";
         document.getElementById("middlePile").innerHTML = "กองกลาง (5 ใบ)";
