@@ -73,12 +73,16 @@ io.on("connection", (socket) => {
     });
 
     socket.on("restartGame", () => {
+        console.log("🔄 เริ่มเกมใหม่!");
+
+        // รีเซ็ตค่าต่างๆ
         readyPlayers.clear();
         gameStarted = false;
         submittedHands = {};
-        console.log("🔄 เริ่มเกมใหม่!");
 
         io.emit("gameReset");
+        io.emit("updatePlayers", { players });
+
         startGame();
     });
 
