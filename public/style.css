@@ -74,8 +74,15 @@ button:disabled {
     z-index: 1000;
 }
 
-.card.red { color: red; }
-.card.black { color: black; }
+/* ✅ ไพ่สีแดง */
+.red-card {
+    color: red;
+}
+
+/* ✅ ไพ่สีดำ */
+.black-card {
+    color: black;
+}
 
 /* ✅ ส่วนของกองไพ่ */
 .pile {
