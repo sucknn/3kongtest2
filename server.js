@@ -43,7 +43,8 @@ io.on("connection", (socket) => {
 
         readyPlayers.add(socket.id);
         io.emit("playerReady", { playerName: player.playerName });
-        console.log(`✅ ${player.playerName} กดเริ่มเกมแล้ว!`);
+
+        console.log(`✅ ${player.playerName} กดเริ่มเกมแล้ว! (${readyPlayers.size}/4)`);
 
         if (readyPlayers.size === 4 && players.length === 4 && !gameStarted) {
             gameStarted = true;
@@ -78,7 +79,7 @@ io.on("connection", (socket) => {
         console.log("🔄 เริ่มเกมใหม่!");
 
         io.emit("gameReset");
-        startGame(); // แจกไพ่ใหม่
+        startGame();
     });
 
     socket.on("disconnect", () => {
