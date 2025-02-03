@@ -199,3 +199,4 @@ function evaluateHand(cards) {
 
     return Math.max(...values) / 100;
 }
+
