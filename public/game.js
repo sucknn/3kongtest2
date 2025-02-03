@@ -17,6 +17,15 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("gameBoard").style.display = "block";
     });
 
+    // ✅ อัปเดตข้อมูลผู้เล่น & แสดงปุ่มเริ่มเกม
+    socket.on("updatePlayers", data => {
+        const playerCount = data.players.length;
+        document.getElementById("playerInfo").textContent = `ผู้เล่นในเกม: ${playerCount}/4`;
+
+        // ถ้ามีครบ 4 คนให้แสดงปุ่ม "เริ่มเกม"
+        document.getElementById("startGame").style.display = (playerCount === 4) ? "inline-block" : "none";
+    });
+
     // ✅ กดปุ่ม "เริ่มเกม"
     document.getElementById("startGame").addEventListener("click", () => {
         socket.emit("playerReady");
