@@ -53,6 +53,15 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("disconnect", () => {
+        players = players.filter(p => p.id !== socket.id);
+        readyPlayers.delete(socket.id);
+        delete submittedHands[socket.id];
+
+        io.emit("updatePlayers", { players });
+        io.emit("playerLeft", "❌ มีผู้เล่นออกจากเกม!");
+    });
+
     socket.on("submitHand", data => {
         const player = players.find(p => p.id === data.playerId);
         if (!player) return;
@@ -204,4 +213,3 @@ function evaluateHand(cards) {
 
     return Math.max(...values) / 100;
 }
-
