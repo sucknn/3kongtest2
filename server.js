@@ -22,6 +22,8 @@ let gameStarted = false;
 let submittedHands = {};
 
 io.on("connection", (socket) => {
+    console.log(`✅ ผู้เล่นใหม่เชื่อมต่อ: ${socket.id}`);
+
     socket.on("joinGame", ({ playerName }) => {
         if (players.length >= 4) {
             socket.emit("gameFull", "❌ ผู้เล่นเต็มแล้ว!");
@@ -32,6 +34,7 @@ io.on("connection", (socket) => {
         players.push(player);
 
         io.emit("updatePlayers", { players });
+        console.log(`✅ ${playerName} เข้าร่วมเกม (ผู้เล่น: ${players.length}/4)`);
     });
 
     socket.on("playerReady", () => {
@@ -40,6 +43,7 @@ io.on("connection", (socket) => {
 
         readyPlayers.add(socket.id);
         io.emit("playerReady", { playerName: player.playerName });
+        console.log(`✅ ${player.playerName} กดเริ่มเกมแล้ว!`);
 
         if (readyPlayers.size === 4 && players.length === 4 && !gameStarted) {
             gameStarted = true;
@@ -57,6 +61,8 @@ io.on("connection", (socket) => {
             hand: data.hand
         };
 
+        console.log(`✅ ${player.playerName} ส่งไพ่แล้ว (${Object.keys(submittedHands).length}/4)`);
+
         if (Object.keys(submittedHands).length === 4) {
             let scores = calculateScore(submittedHands);
             io.emit("showScores", scores);
@@ -69,6 +75,7 @@ io.on("connection", (socket) => {
         readyPlayers.clear();
         gameStarted = false;
         submittedHands = {};
+        console.log("🔄 เริ่มเกมใหม่!");
 
         io.emit("gameReset");
         startGame(); // แจกไพ่ใหม่
@@ -78,12 +85,15 @@ io.on("connection", (socket) => {
         players = players.filter(p => p.id !== socket.id);
         readyPlayers.delete(socket.id);
         delete submittedHands[socket.id];
-        
+
         io.emit("updatePlayers", { players });
         io.emit("playerLeft", "❌ มีผู้เล่นออกจากเกม!");
+
+        console.log(`❌ ผู้เล่น ${socket.id} ออกจากเกม (เหลือ ${players.length}/4)`);
     });
 });
 
+// ✅ เริ่มเกมและแจกไพ่
 function startGame() {
     if (players.length !== 4) {
         console.log("❌ ผู้เล่นยังไม่ครบ 4 คน, รอให้ครบก่อนเริ่มเกม...");
@@ -101,12 +111,14 @@ function startGame() {
     console.log("✅ แจกไพ่ให้ผู้เล่นทุกคนแล้ว!");
 }
 
+// ✅ สร้างสำรับไพ่
 function createDeck() {
     const suits = ["♠", "♥", "♦", "♣"];
     const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     return suits.flatMap(suit => ranks.map(rank => rank + suit));
 }
 
+// ✅ สับไพ่
 function shuffleDeck(deck) {
     for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -114,6 +126,7 @@ function shuffleDeck(deck) {
     }
 }
 
+// ✅ คำนวณคะแนน
 function calculateScore(hands) {
     let scores = {};
     players.forEach(player => scores[player.playerName] = 0);
@@ -132,9 +145,11 @@ function calculateScore(hands) {
         }
     }
 
+    console.log("✅ คะแนนที่คำนวณได้:", scores);
     return scores;
 }
 
+// ✅ เปรียบเทียบไพ่
 function compareHands(hand1, hand2) {
     let result = [0, 0];
     let handTypes = ["topPile", "middlePile", "bottomPile"];
@@ -156,6 +171,7 @@ function compareHands(hand1, hand2) {
     return result;
 }
 
+// ✅ คำนวณคะแนนของไพ่แต่ละกอง
 function evaluateHand(cards) {
     const rankOrder = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     let rankCounts = {}, suits = new Set(), values = [];
