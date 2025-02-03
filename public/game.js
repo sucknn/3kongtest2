@@ -62,6 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
             cardElement.draggable = true;
             cardElement.dataset.card = card;
             cardElement.textContent = card;
+
+            // ✅ ทำให้ไพ่สีแดงแสดงเป็นสีแดง ไพ่สีดำแสดงเป็นสีดำ
+            if (card.includes("♦") || card.includes("♥")) {
+                cardElement.classList.add("red-card");
+            } else {
+                cardElement.classList.add("black-card");
+            }
+
             cardElement.addEventListener('dragstart', handleDragStart);
             handContainer.appendChild(cardElement);
         });
