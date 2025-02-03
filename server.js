@@ -130,7 +130,7 @@ function shuffleDeck(deck) {
     }
 }
 
-// ✅ คำนวณคะแนน
+// ✅ คำนวณคะแนน (แก้ไขให้เปรียบเทียบทุกมือ)
 function calculateScore(hands) {
     let scores = {};
     players.forEach(player => scores[player.playerName] = 0);
@@ -142,6 +142,8 @@ function calculateScore(hands) {
 
             let hand1 = hands[player1.id];
             let hand2 = hands[player2.id];
+
+            if (!hand1 || !hand2) continue;
 
             let scoreChange = compareHands(hand1, hand2);
             scores[player1.playerName] += scoreChange[0];
