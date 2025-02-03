@@ -1,144 +1,78 @@
-const socket = io();
-let playerName = localStorage.getItem("playerName") || "";
-let readyPlayers = new Set();
+cconst socket = io();
 
 document.getElementById("joinGame").addEventListener("click", () => {
-    playerName = document.getElementById("playerName").value.trim();
-    if (!playerName) return alert("กรุณากรอกชื่อของคุณ");
-
-    localStorage.setItem("playerName", playerName);
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("playerInfo").style.display = "block";
-    document.getElementById("gameBoard").style.display = "block";
+    const playerName = document.getElementById("playerName").value.trim();
+    if (!playerName) return alert("กรุณากรอกชื่อของคุณ!");
 
     socket.emit("joinGame", { playerName });
-});
-
-socket.on("updatePlayers", data => {
-    const player = data.players.find(p => p.id === socket.id);
-    const playerCount = data.players.length;
-    
-    if (player) {
-        document.getElementById("playerInfo").textContent = `ชื่อคุณ: ${player.playerName} (รอผู้เล่น ${playerCount}/4)`;
-    }
-    
-    document.getElementById("startGame").style.display = 
-        playerCount === 4 ? "inline-block" : "none";
-});
-
-document.getElementById("startGame").addEventListener("click", () => {
-    socket.emit("playerReady");
-    document.getElementById("startGame").disabled = true;
-});
-
-socket.on("playerReady", data => {
-    readyPlayers.add(data.playerName);
-    updateReadyStatus();
-});
-
-function updateReadyStatus() {
-    document.getElementById("readyStatus").innerHTML = 
-        `🟢 ผู้เล่นที่กดเริ่มเกม: ${Array.from(readyPlayers).join(", ")}`;
-}
-
-socket.on("startGame", () => {
-    document.getElementById("startGame").style.display = "none";
-    document.getElementById("readyStatus").innerHTML = "";
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("gameBoard").style.display = "block";
 });
 
 socket.on("dealCards", cards => {
-    const handContainer = document.getElementById('player-hand');
+    const handContainer = document.getElementById("player-hand");
     handContainer.innerHTML = '';
 
     cards.forEach(card => {
-        const suit = card.slice(-1);
-        const isRed = suit === "♦" || suit === "♥";
         const cardElement = document.createElement('div');
-
-        cardElement.className = `card ${isRed ? 'red' : 'black'}`;
+        cardElement.className = "card";
         cardElement.draggable = true;
         cardElement.dataset.card = card;
         cardElement.textContent = card;
         cardElement.addEventListener('dragstart', handleDragStart);
+        cardElement.addEventListener("touchstart", handleTouchStart);
+        cardElement.addEventListener("touchmove", handleTouchMove);
+        cardElement.addEventListener("touchend", handleTouchEnd);
         handContainer.appendChild(cardElement);
     });
-
-    document.getElementById("submitHand").style.display = "inline-block";
 });
 
 function handleDragStart(e) {
     e.dataTransfer.setData('text/plain', e.target.dataset.card);
 }
 
-// ✅ รองรับการลากไพ่ไปวางในกอง
+let selectedCard = null;
+function handleTouchStart(e) {
+    selectedCard = e.target;
+    selectedCard.style.zIndex = "1000";
+    selectedCard.style.transform = "scale(1.1)";
+}
+
+function handleTouchMove(e) {
+    if (!selectedCard) return;
+    let touch = e.touches[0];
+    selectedCard.style.transform = `translate(${touch.clientX}px, ${touch.clientY}px) scale(1.1)`;
+    e.preventDefault();
+}
+
+function handleTouchEnd(e) {
+    if (!selectedCard) return;
+    selectedCard.style.transform = "scale(1)";
+    selectedCard = null;
+}
+
 document.querySelectorAll(".pile").forEach(pile => {
-    pile.addEventListener("dragover", event => {
-        event.preventDefault(); // อนุญาตให้วางไพ่ที่กองได้
-    });
+    pile.addEventListener("dragover", event => event.preventDefault());
 
     pile.addEventListener("drop", event => {
         event.preventDefault();
         const cardValue = event.dataTransfer.getData("text/plain");
-        if (!cardValue) return; // ถ้าไม่มีไพ่ ให้หยุดทำงาน
+        if (!cardValue) return;
 
         const draggedCard = document.querySelector(`[data-card='${cardValue}']`);
-        if (!draggedCard) return; // ถ้าไม่มีไพ่ที่ถูกลากมา ให้หยุดทำงาน
-
-        event.target.appendChild(draggedCard); // ย้ายไพ่ไปยังกองที่ต้องการ
-    });
-});
-
-document.getElementById("submitHand").addEventListener("click", () => {
-    const hand = {
-        topPile: getCardsFromPile("topPile"),
-        middlePile: getCardsFromPile("middlePile"),
-        bottomPile: getCardsFromPile("bottomPile")
-    };
-
-    if (hand.topPile.length !== 3 || hand.middlePile.length !== 5 || hand.bottomPile.length !== 5) {
-        alert("กรุณาจัดไพ่ให้ครบ 3 กอง (3/5/5 ใบ)");
-        return;
-    }
-
-    socket.emit("submitHand", { playerId: socket.id, hand });
-    document.getElementById("submitHand").disabled = true;
-});
-
-function getCardsFromPile(pileId) {
-    return Array.from(document.getElementById(pileId).children)
-                .map(card => card.dataset.card);
-}
-
-socket.on("showScores", scores => {
-    let scoreboard = document.getElementById("scoreboard");
-    scoreboard.innerHTML = "<h3>คะแนนผู้เล่น</h3>";
-    
-    Object.entries(scores).forEach(([player, score]) => {
-        let scoreElement = document.createElement("p");
-        scoreElement.textContent = `${player}: ${score} คะแนน`;
-        scoreboard.appendChild(scoreElement);
-    });
-});
-
-socket.on("showFinalHands", finalHands => {
-    let finalHandsContainer = document.getElementById("finalHands");
-    let handsContainer = document.getElementById("handsContainer");
-    handsContainer.innerHTML = "";
-
-    Object.entries(finalHands).forEach(([playerId, hand]) => {
-        let playerDiv = document.createElement("div");
-        playerDiv.innerHTML = `<strong>ผู้เล่น ${playerId}:</strong> <br>
-            กองบน: ${hand.topPile.join(", ")}<br>
-            กองกลาง: ${hand.middlePile.join(", ")}<br>
-            กองล่าง: ${hand.bottomPile.join(", ")}`;
-        handsContainer.appendChild(playerDiv);
+        if (draggedCard) {
+            event.target.appendChild(draggedCard);
+            draggedCard.draggable = true;
+            draggedCard.addEventListener("dragstart", handleDragStart);
+        }
     });
 
-    finalHandsContainer.style.display = "block";
-});
-
-document.getElementById("restartGame").addEventListener("click", () => {
-    socket.emit("restartGame");
+    pile.addEventListener("touchend", event => {
+        if (!selectedCard) return;
+        event.target.appendChild(selectedCard);
+        selectedCard.style.position = "static";
+        selectedCard = null;
+    });
 });
 
 socket.on("gameReset", () => {
@@ -146,6 +80,9 @@ socket.on("gameReset", () => {
     document.getElementById("scoreboard").innerHTML = "";
     document.getElementById("finalHands").style.display = "none";
     document.getElementById("submitHand").disabled = false;
-    document.getElementById("restartGame").style.display = "none";
-});
+    document.getElementById("restartGame").style.display = "block";
 
+    document.getElementById("topPile").innerHTML = "กองบน (3 ใบ)";
+    document.getElementById("middlePile").innerHTML = "กองกลาง (5 ใบ)";
+    document.getElementById("bottomPile").innerHTML = "กองล่าง (5 ใบ)";
+});
