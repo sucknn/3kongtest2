@@ -105,7 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         socket.emit("submitHand", { playerId: socket.id, hand });
+
+        // ✅ ปิดการใช้งานปุ่มส่งไพ่หลังจากส่งแล้ว
         document.getElementById("submitHand").disabled = true;
+        document.getElementById("submitHand").style.backgroundColor = "#ccc";
     });
 
     function getCardsFromPile(pileId) {
@@ -127,6 +130,21 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("restartGame").style.display = "block";
     });
 
+    // ✅ แสดงไพ่ของผู้เล่นทั้งหมดหลังจบเกม
+    socket.on("showFinalHands", finalHands => {
+        let finalHandsContainer = document.getElementById("finalHands");
+        let handsContainer = document.getElementById("handsContainer");
+        handsContainer.innerHTML = "";
+
+        Object.values(finalHands).forEach(playerData => {
+            let playerDiv = document.createElement("div");
+            playerDiv.innerHTML = `<strong>${playerData.playerName}:</strong> ${JSON.stringify(playerData.hand)}`;
+            handsContainer.appendChild(playerDiv);
+        });
+
+        finalHandsContainer.style.display = "block";
+    });
+
     // ✅ กดปุ่ม "เริ่มเกมใหม่"
     document.getElementById("restartGame").addEventListener("click", () => {
         socket.emit("restartGame");
@@ -138,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("scoreboard").innerHTML = "";
         document.getElementById("readyStatus").innerHTML = "";
         document.getElementById("submitHand").disabled = false;
+        document.getElementById("submitHand").style.backgroundColor = "#28a745";
         document.getElementById("restartGame").style.display = "none";
 
         document.getElementById("topPile").innerHTML = "กองบน (3 ใบ)";
