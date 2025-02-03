@@ -146,6 +146,9 @@ function calculateScore(hands) {
             if (!hand1 || !hand2) continue;
 
             let scoreChange = compareHands(hand1, hand2);
+            
+            console.log(`🎯 เปรียบเทียบ ${player1.playerName} กับ ${player2.playerName}: ${scoreChange}`);
+
             scores[player1.playerName] += scoreChange[0];
             scores[player2.playerName] += scoreChange[1];
         }
@@ -167,6 +170,8 @@ function compareHands(hand1, hand2) {
         let score1 = evaluateHand(hand1[type]);
         let score2 = evaluateHand(hand2[type]);
 
+        console.log(`📊 เปรียบเทียบกอง ${type} → P1: ${score1} | P2: ${score2}`);
+
         if (score1 > score2) { result[0] += 1; result[1] -= 1; totalWin1++; }
         else if (score1 < score2) { result[0] -= 1; result[1] += 1; totalWin2++; }
     });
@@ -179,6 +184,8 @@ function compareHands(hand1, hand2) {
 
 // ✅ คำนวณคะแนนของไพ่แต่ละกอง
 function evaluateHand(cards) {
+    if (!cards || cards.length === 0) return 0; // ถ้าไม่มีไพ่ให้คะแนนเป็น 0
+
     const rankOrder = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     let rankCounts = {}, suits = new Set(), values = [];
 
@@ -195,13 +202,16 @@ function evaluateHand(cards) {
     let isStraight = values.every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
     let counts = Object.values(rankCounts);
 
-    if (isFlush && isStraight) return 8;
-    if (counts.includes(3) && counts.includes(2)) return 7;
-    if (isFlush) return 6;
-    if (isStraight) return 5;
-    if (counts.includes(3)) return 4;
-    if (counts.filter(c => c === 2).length === 2) return 3;
-    if (counts.includes(2)) return 2;
+    let score = 0;
+    if (isFlush && isStraight) score = 8;
+    else if (counts.includes(3) && counts.includes(2)) score = 7;
+    else if (isFlush) score = 6;
+    else if (isStraight) score = 5;
+    else if (counts.includes(3)) score = 4;
+    else if (counts.filter(c => c === 2).length === 2) score = 3;
+    else if (counts.includes(2)) score = 2;
+    else score = Math.max(...values) / 100;
 
-    return Math.max(...values) / 100;
+    console.log(`🃏 คำนวณไพ่: ${cards} → คะแนน: ${score}`);
+    return score;
 }
